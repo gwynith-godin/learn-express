@@ -57,12 +57,19 @@ app.use('/write/adduser', addMsgToRequest);
 
 app.post('/write/adduser', (req: UserRequest, res: Response) => {
   let newuser = req.body as User;
+
+  // pushes new user to a object cache
   users.push(newuser);
   /**
    * Synchronous call to compute the size of the data file
    */
   const dataFileSize = fs.statSync(path.resolve(__dirname, dataFile)).size;
+
+  // if the file is over 10kb, we do not write to a file
+  // instead write to a backup
   if(dataFileSize > 1024) {
+
+    // emit event that will be pusblished on the bus
     bkupEmitter.emit('bkup', users, path.resolve(__dirname, bkupFile)); // emit bkup event when the file size is over 10 Kb
   }
   else {

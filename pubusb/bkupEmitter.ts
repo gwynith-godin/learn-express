@@ -1,6 +1,7 @@
 import EventEmitter from "events";
 import * as fs from 'fs';
 
+// isntance of the event bus that handles failuers
 const bkupEmitter = new EventEmitter();
 
 bkupEmitter.on('bkup', (users: Object[], path: fs.PathOrFileDescriptor) => {

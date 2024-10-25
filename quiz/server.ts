@@ -18,7 +18,7 @@ interface UserRequest extends Request {
 const app: Express = express();
 const port: number = 8000;
 
-const dataFile = './data/users.json';
+const dataFile = '../data/users.json';
 
 let users: User[];
 
@@ -39,6 +39,7 @@ const addMsgToRequest = (req: UserRequest, res: Response, next: NextFunction) =>
   }
 };
 
+// Enable CORS for requests from localhost:3000
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use('/read/usernames', addMsgToRequest);
 
@@ -48,6 +49,26 @@ app.get('/read/usernames', (req: UserRequest, res: Response) => {
   });
   res.send(usernames);
 });
+
+// important to define the endpoint in the correct order
+// retrieve input on URI 
+app.use('/read/username/:name', addMsgToRequest);
+app.get('/read/username/:name', (req: UserRequest, res: Response) =>{
+  
+  let name = req.params.name;
+  let user_w_name = req.users?.filter((user) => user.username === name);
+  console.log(user_w_name);
+
+  if (user_w_name) {
+    // Return the email of the found user
+    res.send(user_w_name);
+  }
+  else {
+    return res.json({
+      error: { message: 'users not found', status: 404 }
+    });
+  };
+  });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

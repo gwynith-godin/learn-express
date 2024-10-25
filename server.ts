@@ -28,6 +28,7 @@ fs.readFile(path.resolve(__dirname, dataFile), (err, data) => {
   users = JSON.parse(data.toString());
 });
 
+// middlewear - requests have to go through this to get to app.get
 const addMsgToRequest = (req: UserRequest, res: Response, next: NextFunction) => {
   if (users) {
     req.users = users;
@@ -39,6 +40,8 @@ const addMsgToRequest = (req: UserRequest, res: Response, next: NextFunction) =>
   }
 };
 
+//only trust requests form localhost:3000
+// if you leave empty, any request will be accepted
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use('/read/usernames', addMsgToRequest);
 
@@ -53,9 +56,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/write/adduser', addMsgToRequest);
 
+// http verb that allows us to create new resourcecs in a router
 app.post('/write/adduser', (req: UserRequest, res: Response) => {
   let newuser = req.body as User;
+
+  // push new user to cache
   users.push(newuser);
+
+  // if this operation crashes, then the user will be lost
+  // create a mechanism that if there is an error, we trigger an event and use that event to create a backup
   fs.writeFile(path.resolve(__dirname, dataFile), JSON.stringify(users), (err) => {
     if (err) console.log('Failed to write');
     else console.log('User Saved');
